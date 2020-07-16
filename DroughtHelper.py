@@ -10,11 +10,10 @@ import scipy.stats as stats
 # Local solution
 # If running remotely, uncomment the following code:
 # %%bash
-# git clone https://github.com/katemarvel/CMIP5_tools
-# import CMIP5_tools as cmip5
+# git clone https://github.com/katemarvel/python-utils
+
 import sys,os
-#sys.path.append("/Users/kmarvel/Google Drive/python-utils")
-#sys.path.append("/home/kdm2144/python-utils")
+
 import CMIP5_tools as cmip5
 import DA_tools
 import Plotting
@@ -23,11 +22,12 @@ from eofs.cdms import Eof
 from eofs.multivariate.cdms import MultivariateEof
 
 
-computer="dester"
-if computer is "laptop":
+import socket
+computer=socket.gethostname()
+if computer == "gssla40053875":
     rootdirec="/Volumes/MarvelCMIP6/DROUGHT/"
     sys.path.append("/Users/kmarvel/Google Drive/python-utils")
-elif computer is "dester":
+elif computer == "dester":
     rootdirec="/home/kdm2144/DROUGHT/"
     sys.path.append("/home/kdm2144/python-utils")
 else:
@@ -250,7 +250,8 @@ def get_available_models(variable,experiment,region):
 def get_ok_models(region,variables=None):
     models=[x.split("_fx_")[-1].split(".")[0] for x in glob.glob(rootdirec+"fixedvar/sftlf*")]
     if variables is None:
-        variables=['tas', 'mrro', 'mrros', 'mrso', 'pr',"evspsbl","mrsos","prsn"] #add mrsos, evspsbl and prsn when they download
+        #variables=['tas', 'mrro', 'mrros', 'mrso', 'pr',"evspsbl","mrsos","prsn"] #add mrsos, evspsbl and prsn when they download
+        variables=["mrro"] #KLUDGE: FIX THIS when more data downloads
     experiments=["piControl","historical","ssp585"] #require at least 1 ens member in each of these experiments
     for variable in variables:
         for experiment in experiments:
@@ -293,34 +294,7 @@ def get_ensemble_dictionary(variable,region,exclude_piC=True):
     
     return EXPS
 
-# def get_common_ensembles(variable,region):
-#     OK={}
-#     EXPS=get_ensemble_dictionary(variable,region)
-#     #readstem = "/Volumes/SahelData/CMIP6Drought/NCA4/"
-#     readstem = "/Volumes/MarvelCMIP6/DROUGHT/NCA4/"
-#     histfut=[x.split("/")[-1] for x in glob.glob(readstem+region+"/"+variable+"/*")]
-    
-#     histfut.remove("piControl")
-    
-    
-#     for model in get_ok_models(region):
-#         OK[model]=sorted(commonElements([EXPS[x][model] for x in histfut]))
-#     return OK
 
-# def get_ensemble_filenames(variable,region,experiment):
-#     fnames=[]
-#     #if experiment != "piControl":
-#      #   OK=get_common_ensembles(variable,region)
-#    # else:
-#     OK=get_ensemble_dictionary(variable,region,exclude_piC=False)
-#     #readstem = "/Volumes/SahelData/CMIP6Drought/NCA4/"
-#     readstem = "/Volumes/MarvelCMIP6/DROUGHT/NCA4/"
-#     readdirec=readstem+region+"/"+variable+"/"+experiment+"/"
-#     for model in sorted(OK.keys()):
-#         for rip in sorted(OK[model]):
-#             fname=variable+"."+experiment+"."+model+"."+rip+".nc"
-#             fnames+=[readdirec+fname]
-#     return fnames
 def get_ensemble_filenames(variable,region,experiment,readstem=rootdirec+"NCA4/"):
     fnames=[]
     for model in get_ok_models(region):
