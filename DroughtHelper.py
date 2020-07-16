@@ -13,8 +13,8 @@ import scipy.stats as stats
 # git clone https://github.com/katemarvel/CMIP5_tools
 # import CMIP5_tools as cmip5
 import sys,os
-sys.path.append("/Users/kmarvel/Google Drive/python-utils")
-
+#sys.path.append("/Users/kmarvel/Google Drive/python-utils")
+#sys.path.append("/home/kdm2144/python-utils")
 import CMIP5_tools as cmip5
 import DA_tools
 import Plotting
@@ -23,12 +23,16 @@ from eofs.cdms import Eof
 from eofs.multivariate.cdms import MultivariateEof
 
 
-computer="laptop"
+computer="dester"
 if computer is "laptop":
     rootdirec="/Volumes/MarvelCMIP6/DROUGHT/"
+    sys.path.append("/Users/kmarvel/Google Drive/python-utils")
+elif computer is "dester":
+    rootdirec="/home/kdm2144/DROUGHT/"
+    sys.path.append("/home/kdm2144/python-utils")
 else:
     rootdirec="/Users/kmarvel/Documents/DATA/"
-    
+    sys.path.append("/Users/kmarvel/Google Drive/python-utils")
 vcert=stats.norm.interval(.99)[1]
 
 #Region locations
@@ -222,7 +226,7 @@ def get_ok_models_variable(variable,region):
     #readstem="/Users/kmarvel/Documents/DATA/dester/regional_averages/"
     #readstem = "/Volumes/SahelData/CMIP6Drought/NCA4/"
     #readstem = "/Users/kmarvel/Documents/DATA/dester/regional_averages/NCA4/"
-    readstem = "/Volumes/MarvelCMIP6/DROUGHT/NCA4/"
+    readstem = rootdirec+"NCA4/"
     experiments=[x.split("/")[-1] for x in glob.glob(readstem+region+"/"+variable+"/*")]
     for experiment in experiments:
         readdirec=readstem+region+"/"+variable+"/"+experiment+"/"
@@ -241,10 +245,10 @@ def get_ok_models_variable(variable,region):
 #     return ok
 
 def get_available_models(variable,experiment,region):
-    return np.unique([x.split(".")[-3] for x in glob.glob("/Volumes/MarvelCMIP6/DROUGHT/NCA4/"+region+"/"+variable+"/"+experiment+"/*")])
+    return np.unique([x.split(".")[-3] for x in glob.glob(rootdirec+"NCA4/"+region+"/"+variable+"/"+experiment+"/*")])
 
 def get_ok_models(region,variables=None):
-    models=[x.split("_fx_")[-1].split(".")[0] for x in glob.glob("/Volumes/MarvelCMIP6/DROUGHT/fixedvar/sftlf*")]
+    models=[x.split("_fx_")[-1].split(".")[0] for x in glob.glob(rootdirec+"fixedvar/sftlf*")]
     if variables is None:
         variables=['tas', 'mrro', 'mrros', 'mrso', 'pr',"evspsbl","mrsos","prsn"] #add mrsos, evspsbl and prsn when they download
     experiments=["piControl","historical","ssp585"] #require at least 1 ens member in each of these experiments
@@ -275,7 +279,7 @@ def get_ensemble_dictionary(variable,region,exclude_piC=True):
     okmodels=get_ok_models(region)
     EXPS={}
     #readstem = "/Volumes/SahelData/CMIP6Drought/NCA4/"
-    readstem = "/Volumes/MarvelCMIP6/DROUGHT/NCA4/"
+    readstem = rootdirec+"NCA4/"
     histfut=[x.split("/")[-1] for x in glob.glob(readstem+region+"/"+variable+"/*")]
     if exclude_piC:
         histfut.remove("piControl")
@@ -317,7 +321,7 @@ def get_ensemble_dictionary(variable,region,exclude_piC=True):
 #             fname=variable+"."+experiment+"."+model+"."+rip+".nc"
 #             fnames+=[readdirec+fname]
 #     return fnames
-def get_ensemble_filenames(variable,region,experiment,readstem="/Volumes/MarvelCMIP6/DROUGHT/NCA4/"):
+def get_ensemble_filenames(variable,region,experiment,readstem=rootdirec+"NCA4/"):
     fnames=[]
     for model in get_ok_models(region):
         fnames+=glob.glob(readstem+region+"/"+variable+"/"+experiment+"/"+variable+"."+experiment+"."+model+".*")
@@ -402,7 +406,7 @@ class TOE():
         self.variable=variable
         self.region=region
         self.verbose=verbose
-        self.readstem = "/Volumes/MarvelCMIP6/DROUGHT/NCA4/"
+        self.readstem = rootdirec+"NCA4/"
     def get_ensemble(self,experiment):
         if not hasattr(self,experiment):
             if experiment != "piControl":
