@@ -533,6 +533,7 @@ class TOE():
         Z.id=alldata.id
         return(Z)
     def ensemble_average(self,experiment):
+        
         self.get_ensemble(experiment)
         data=getattr(self,experiment)
         nens,ntime=data.shape
@@ -596,7 +597,7 @@ class TOE():
         cdutil.setTimeBoundsMonthly(SingleMember)  
         return SingleMember
     
-    def splice_historical(self,ssp,single_member=True):
+    def splice_historical(self,ssp,single_member=True,ensemble_average=True):
         #concatenate hist and future
         if single_member:
             func=self.single_member_ensemble
@@ -612,11 +613,16 @@ class TOE():
             all_data.setAxis(0,hist.getAxis(0))
             all_data.id=hist.id
         else:
+            
             self.get_ensemble("historical")
             self.get_ensemble(ssp)
-            hdata=getattr(self,"historical")
-            sspdata=getattr(self,ssp)
-            all_data=splice_data(hdata,sspdata)
+            if ensemble_average:
+                hdata=self.ensemble_average("historical")
+                sspdata=self.ensemble_average("ssp585")
+            else:
+                hdata=getattr(self,"historical")
+                sspdata=getattr(self,ssp)
+            all_data=splice_data(hdata,sspdata,ensemble_average=True)
         cdutil.setTimeBoundsMonthly(all_data)
         return all_data
         
