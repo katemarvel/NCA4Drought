@@ -294,6 +294,8 @@ def get_ensemble_dictionary(variable,region,exclude_piC=True):
     
     return EXPS
 def splice_data(hdata,sspdata):
+    cdutil.setTimeBoundsMonthly(hdata)
+    cdutil.setTimeBoundsMonthly(sspdata)
     scenario=cmip5.models(sspdata)[0].split("/")[-2]
     sspmodels=[fname.split(".")[2] for fname in cmip5.models(sspdata)]
     ssprips=[fname.split(".")[3] for fname in cmip5.models(sspdata)]
@@ -324,8 +326,11 @@ def splice_data(hdata,sspdata):
         #print(cmip5.models(hdata)[i])
         counter+=1
     modax=cmip5.make_model_axis(splicedmods)
-    nyears=lenhist+lenssp
-    tax=cdms.createAxis(np.arange(6,nyears*12,12))
+    units=hdata.getTime().units
+    htime=hdata.getTime()[:]
+    stime=sspdata.getTime().asComponentTime()
+    stime_new=np.array([x.torel(units).value for x in stime])
+    tax=cdms.createAxis(np.append(htime,stime_new))
     tax.designateTime()
     tax.id="time"
     htax=hdata.getTime()
@@ -333,6 +338,7 @@ def splice_data(hdata,sspdata):
         setattr(tax,att,htax.attributes[att])
     spliced.setAxisList([modax,tax])
     spliced.id=hdata.id
+    cdutil.setTimeBoundsMonthly(spliced)
     return spliced
 
 def get_ensemble_filenames(variable,region,experiment,readstem=rootdirec+"NCA4/"):
