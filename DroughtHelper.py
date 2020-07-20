@@ -293,7 +293,47 @@ def get_ensemble_dictionary(variable,region,exclude_piC=True):
         EXPS[experiment]=ENSEMBLE
     
     return EXPS
+def splice_data(hdata,sspdata):
+    scenario=cmip5.models(sspdata)[0].split("/")[-2]
+    sspmodels=[fname.split(".")[2] for fname in cmip5.models(sspdata)]
+    ssprips=[fname.split(".")[3] for fname in cmip5.models(sspdata)]
+    sspids=[]
+    for mod,rip in zip(sspmodels,ssprips):
+        sspids+=[mod+"."+rip]
 
+
+    hmodels=[fname.split(".")[2] for fname in cmip5.models(hdata)]
+    hrips=[fname.split(".")[3] for fname in cmip5.models(hdata)]
+    hids=[mod+"."+rip for mod,rip in zip(hmodels,hrips)]
+
+
+    lenhist=hdata.shape[1]
+    lenssp=sspdata.shape[1]
+    intersect=np.intersect1d(np.array(hids),np.array(sspids))
+    nmod=len(intersect)
+    spliced=MV.zeros((nmod,lenhist+lenssp))
+    counter=0
+    splicedmods=[]
+    for pr in intersect:
+        i=hids.index(pr)
+
+        j=sspids.index(pr)
+        dat=MV.concatenate((hdata[i],sspdata[j]))
+        spliced[counter]=dat
+        splicedmods+=[cmip5.models(hdata)[i].replace("historical","historical_"+scenario)]
+        #print(cmip5.models(hdata)[i])
+        counter+=1
+    modax=cmip5.make_model_axis(splicedmods)
+    nyears=lenhist+lenssp
+    tax=cdms.createAxis(np.arange(6,nyears*12,12))
+    tax.designateTime()
+    tax.id="time"
+    htax=hdata.getTime()
+    for att in htax.attributes.keys():
+        setattr(tax,att,htax.attributes[att])
+    spliced.setAxisList([modax,tax])
+    spliced.id=hdata.id
+    return spliced
 
 def get_ensemble_filenames(variable,region,experiment,readstem=rootdirec+"NCA4/"):
     fnames=[]
