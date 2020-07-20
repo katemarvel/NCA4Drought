@@ -251,7 +251,7 @@ def get_ok_models(region,variables=None):
     models=[x.split("_fx_")[-1].split(".")[0] for x in glob.glob(rootdirec+"fixedvar/sftlf*")]
     if variables is None:
         #variables=['tas', 'mrro', 'mrros', 'mrso', 'pr',"evspsbl","mrsos","prsn"] #add mrsos, evspsbl and prsn when they download
-        variables=["mrro"] #KLUDGE: FIX THIS when more data downloads
+        variables=["pr"] #KLUDGE: FIX THIS when more data downloads
     experiments=["piControl","historical","ssp585"] #require at least 1 ens member in each of these experiments
     for variable in variables:
         for experiment in experiments:
@@ -566,6 +566,8 @@ class TOE():
             all_data.setAxis(0,hist.getAxis(0))
             all_data.id=hist.id
         else:
+            self.get_ensemble("historical")
+            self.get_ensemble(ssp)
             hdata=getattr(self,"historical")
             sspdata=getattr(self,ssp)
             all_data=splice_data(hdata,sspdata)
