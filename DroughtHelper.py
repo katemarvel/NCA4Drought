@@ -618,7 +618,7 @@ class TOE():
             self.get_ensemble(ssp)
             if ensemble_average:
                 hdata=self.ensemble_average("historical")
-                sspdata=self.ensemble_average("ssp585")
+                sspdata=self.ensemble_average(ssp)
             else:
                 hdata=getattr(self,"historical")
                 sspdata=getattr(self,ssp)
