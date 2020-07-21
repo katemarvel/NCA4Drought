@@ -599,7 +599,7 @@ class TOE():
         cdutil.setTimeBoundsMonthly(SingleMember)  
         return SingleMember
     
-    def splice_historical(self,ssp,single_member=True,ensemble_average=True):
+    def splice_historical(self,ssp,single_member=True):
         #concatenate hist and future
         if single_member:
             func=self.single_member_ensemble
@@ -622,8 +622,7 @@ class TOE():
             hdata=getattr(self,"historical")
             sspdata=getattr(self,ssp)
             all_data=splice_data(hdata,sspdata)
-            if ensemble_average:
-                all_data=self.ensemble_average(all_data)
+            
         cdutil.setTimeBoundsMonthly(all_data)
         return all_data
         
@@ -645,7 +644,7 @@ class TOE():
             timedata=getattr(cdutil,season).departures(rawdata,ref=clim)
             Plotting.time_plot(MV.average(timedata,axis=0),color=get_color(ssp),label=get_label(ssp))
         plt.legend()
-    def signals(self,season,ssp,single_member=False,start_time=None,init=10):
+    def signals(self,season,ssp,single_member=True,start_time=None,init=10):
         if start_time is None:
             start_time=cdtime.comptime(1980,1,1)
         end_time=cdtime.comptime(2100,12,31)
