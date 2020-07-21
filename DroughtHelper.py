@@ -623,7 +623,7 @@ class TOE():
             sspdata=getattr(self,ssp)
             all_data=splice_data(hdata,sspdata)
             if ensemble_average:
-                all_data=self.ensemble_average(alldata)
+                all_data=self.ensemble_average(all_data)
         cdutil.setTimeBoundsMonthly(all_data)
         return all_data
         
