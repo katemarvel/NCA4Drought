@@ -533,9 +533,11 @@ class TOE():
         Z.id=alldata.id
         return(Z)
     def ensemble_average(self,experiment):
-        
-        self.get_ensemble(experiment)
-        data=getattr(self,experiment)
+        if type(experiment)==type("string"):
+            self.get_ensemble(experiment)
+            data=getattr(self,experiment)
+        else:
+            data=experiment
         nens,ntime=data.shape
         #models=sorted(self.ensemble_dict.keys())
         models=get_ok_models(self.region)
@@ -616,13 +618,12 @@ class TOE():
             
             self.get_ensemble("historical")
             self.get_ensemble(ssp)
-            if ensemble_average:
-                hdata=self.ensemble_average("historical")
-                sspdata=self.ensemble_average(ssp)
-            else:
-                hdata=getattr(self,"historical")
-                sspdata=getattr(self,ssp)
+           
+            hdata=getattr(self,"historical")
+            sspdata=getattr(self,ssp)
             all_data=splice_data(hdata,sspdata)
+            if ensemble_average:
+                all_data=self.ensemble_average(alldata)
         cdutil.setTimeBoundsMonthly(all_data)
         return all_data
         
