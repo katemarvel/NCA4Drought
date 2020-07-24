@@ -21,7 +21,7 @@ import Plotting
 
 from eofs.cdms import Eof
 from eofs.multivariate.cdms import MultivariateEof
-%matplotlib inline
+
 
 import requests
 import pandas as pd
