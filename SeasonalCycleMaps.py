@@ -35,7 +35,7 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 
 from eofs.cdms import Eof
 from eofs.multivariate.cdms import MultivariateEof
-get_ipython().run_line_magic('matplotlib', 'inline')
+
 
 rootdirec="/home/kdm2144/"
 vcert=stats.norm.interval(.99)[1]
