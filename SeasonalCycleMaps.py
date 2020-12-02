@@ -249,7 +249,7 @@ for experiment in experiments:
 
         alldata=regrid_models(variable,experiment)
         fw=cdms.open("/home/kdm2144/DROUGHT/Maps/"+variable+"."+experiment+".MMA.2015_2100.nc","w")
-        fw.write(pr_all)
+        fw.write(alldata)
         fw.close()
 
         mma=MV.average(alldata,axis=0)
