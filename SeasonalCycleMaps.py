@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[39]:
+# In[1]:
 
 
 import cdms2 as cdms
@@ -35,7 +35,7 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 
 from eofs.cdms import Eof
 from eofs.multivariate.cdms import MultivariateEof
-
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 rootdirec="/home/kdm2144/"
 vcert=stats.norm.interval(.99)[1]
@@ -66,6 +66,7 @@ import DroughtHelper2 as dh
 # In[40]:
 
 
+##FOURIER STUFF
 from scipy import signal
 
 def FourierPlot(tas):
@@ -142,7 +143,7 @@ def day_of_trough(phase):
 vec_day_of_trough=np.vectorize(day_of_trough)
 
 
-# In[38]:
+# In[3]:
 
 
 def regrid_models(variable,experiment):
@@ -173,7 +174,24 @@ def regrid_models(variable,experiment):
     allmodels=MV.zeros(bigshape)
     for modeli in range(nmodels):
         model=models[modeli]
-        #print(model)
+        print(model)
+        
+        #Get landmask
+        landthresh=1
+        fixedvardirec=external_drive+"DROUGHT/fixedvar/"
+        #Get the land fraction
+        landfiles=glob.glob(fixedvardirec+"sftlf*"+model+".*")
+
+
+        if len(landfiles)==1:
+            fland=cdms.open(landfiles[0])
+            landfrac=fland("sftlf")
+            fland.close()
+        else:
+            print("can't find land fraction file for", model)
+            print(landfiles)
+            continue
+        
         allfiles_rips=sorted(glob.glob("/home/kdm2144/DROUGHT/DOWNLOADED_RAW/"+"/"+variable+"/"+model+"/*."+experiment+".*"))
         rips=sorted(np.unique([x.split(".")[3] for x in allfiles_rips]))
         if len(rips)>0:
@@ -185,7 +203,8 @@ def regrid_models(variable,experiment):
             for i in range(nyears):
                 f=cdms.open(allfiles[i])
                 data=f(variable)
-                data_regrid=data.regrid(grid,regridTool='regrid2')
+                landdata=cmip5.cdms_clone(np.repeat(.01*landfrac.asma()[np.newaxis],12,axis=0)*data,data)
+                data_regrid=landdata.regrid(grid,regridTool='regrid2')
                 if i==0:
                     bigdata=data_regrid
                 else:
@@ -213,48 +232,71 @@ def regrid_models(variable,experiment):
 # In[27]:
 
 
-def mma_amp_phase(mma):
-    nmonths,nlat,nlon=mma.shape
+def singlemodel_amp_phase(singlemodel):
+  
+    nmonths,nlat,nlon=singlemodel.shape
     nyears=int(nmonths/12)
     A=MV.zeros((nyears,nlat,nlon))
     P=MV.zeros((nyears,nlat,nlon))
     for i in range(nlat):
         for j in range(nlon):
-            if not mma.mask[0,i,j]:
-                data=mma[:,i,j]
+            if not singlemodel.mask[0,i,j]:
+                data=singlemodel[:,i,j]
                 if annual_cycle_dominant(data)==12:
                     for year in range(nyears):
                         amp,phase=get_cycle(data[year*12:(year+1)*12])
                         A[year,i,j]=amp
                         P[year,i,j]=phase
     P=MV.masked_where(P==0,P)
-    yav=cdutil.YEAR(mma)
+    yav=cdutil.YEAR(singlemodel)
     P.setAxisList(yav.getAxisList())
-    P.id="phase"
+    
 
     A=MV.masked_where(A==0,A)
     P=MV.masked_where(A==0,P)
     A.setAxisList(yav.getAxisList())
     A.id="amp"
+    P.id="phase"
     return A,P
 
 
-#Write the data
+# In[8]:
 
 
-variables=["prsn","tas","evspsbl","mrro","mrros","mrso","mrsos","pr"]
+def allmodel_amp_phase(data):
+    nmod,nmonths,nlat,nlon=data.shape
+    nyears=int(nmonths/12)
+    A=MV.zeros(nmod,nyears,nlat,nlon)
+    P=MV.zeros(nmod,nyears,nlat,nlon)
+    for i in range(nmod):
+        singlemodel=data[i]
+        Am,Pm=singlemodel_amp_phase(singlemodel)
+        A[i]=Am
+        P[i]=Pm
+    yav=cdutil.YEAR(data)
+    A.setAxisList(yav.getAxisList())
+    P.setAxisList(yav.getAxisList())
+    A.id="amp"
+    P.id="phase"
+    return A,P
+
+
+# In[18]:
+
+
+#Write multi-model data, amp, phase of regridded files
+variables=["pr","prsn","tas","evspsbl","mrro","mrros","mrso","mrsos"]
 experiments=["ssp585","historical"]
 for experiment in experiments:
     for variable in variables:
 
         alldata=regrid_models(variable,experiment)
         fw=cdms.open("/home/kdm2144/DROUGHT/Maps/"+variable+"."+experiment+".MMA.2015_2100.nc","w")
-        fw.write(alldata)
+        fw.write(pr_all)
         fw.close()
+            
+        A,P=allmodel_amp_phase(alldata)
 
-        mma=MV.average(alldata,axis=0)
-
-        A,P=mma_amp_phase(mma)
 
         fw=cdms.open("/home/kdm2144/DROUGHT/Maps/"+variable+"."+experiment+".AmpPhase.2015_2100.nc","w")
         fw.write(A)
@@ -262,7 +304,7 @@ for experiment in experiments:
         fw.close()
 
 
-
+# In[ ]:
 
 
 
